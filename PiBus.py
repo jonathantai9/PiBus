@@ -2,8 +2,10 @@ import xml.etree.ElementTree as ET
 from urllib.request import urlopen
 import time
 
+base_url = 'http://webservices.nextbus.com/service/publicXMLFeed?a=rutgers&command='
+
 # Grab New Brunswick Routes
-url = urlopen('http://webservices.nextbus.com/service/publicXMLFeed?a=rutgers&command=routeList')
+url = urlopen(base_url + 'routeList')
 route_list = ET.parse(url)
 routes = {}
 # not in the New Brunswick campus
@@ -15,7 +17,7 @@ for route in route_list.getroot().findall('route'):
     if tag not in banned_tags:
         routes[tag] = title
 
-print("Routes: " + ", ".join(key + ": " + value for value, key in routes.items()))
+print("Routes: " + " ".join(key + "(" + value + ")" for value, key in routes.items()))
 
 valid_route = False
 while valid_route is False:
@@ -28,21 +30,19 @@ while valid_route is False:
 time_start = time.time()
 
 # Check if the route is active by checking if there are no buses active
-url = urlopen('http://webservices.nextbus.com/service/publicXMLFeed?command=vehicleLocations&a=rutgers&r=' + route + '&t=0')
+url = urlopen(base_url + 'vehicleLocations&r=' + route + '&t=0')
 active_buses = ET.parse(url)
-
 if active_buses.getroot().find('vehicle') is None:
     print('The ' + routes[route] + ' route is currently inactive.')
     quit()
 
-url = urlopen('http://webservices.nextbus.com/service/publicXMLFeed?a=rutgers&command=routeConfig&r=' + route)
+url = urlopen(base_url + 'routeConfig&r=' + route)
 route_stops = ET.parse(url)
 
 # Prints all stops in the route along with their bus arrival times
 for stop in route_stops.getroot().findall('./route/stop'):
     stop_id = stop.get('stopId')
-    url = urlopen('http://webservices.nextbus.com/service/publicXMLFeed?a=rutgers'
-                  '&command=predictions&stopId=' + stop_id + '&r=' + route)
+    url = urlopen(base_url + 'predictions&stopId=' + stop_id + '&r=' + route)
     route_predictions = ET.parse(url)
     minutes = []
 
@@ -61,5 +61,4 @@ for stop in route_stops.getroot().findall('./route/stop'):
     print(stop.get('title') + ':', ", ".join(minutes) + ' minutes')
 
 time_end = time.time()
-
 print("Time Taken: " + str(time_end - time_start))
