@@ -37,15 +37,20 @@ for stop in route_stops.getroot().findall('./route/stop'):
     route_predictions = ET.parse(url)
     minutes = []
 
-    
+    # Check if bus stop is closed
+    if route_predictions.getroot().find('./predictions/direction') is None:
+        print(stop.get('title') + " is offline.")
+        continue
 
+    # Add arrival times to array
     for prediction in route_predictions.getroot().findall('.//prediction'):
-        time = prediction.get('minutes')
-        if time == '0':
-            time = '<1'
-        minutes.append(time)
+        minute = prediction.get('minutes')
+        if minute == '0':
+            minute = '<1'
+        minutes.append(minute)
 
     print(stop.get('title') + ':', ", ".join(minutes) + ' minutes')
 
 time_end = time.time()
+
 print("Time Taken: " + str(time_end - time_start))
