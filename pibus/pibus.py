@@ -1,8 +1,10 @@
 import xml.etree.ElementTree as ET
 from urllib.request import urlopen
 import time
+from pibus.geolocationhelper import distance_between
 
 # Next Bus Public API - http://api.rutgers.edu/
+# Documentation - https://www.nextbus.com/xmlFeedDocs/NextBusXMLFeed.pdf
 base_url = 'http://webservices.nextbus.com/service/publicXMLFeed?a=rutgers&command='
 
 # Grab New Brunswick Routes
