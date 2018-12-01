@@ -26,6 +26,15 @@ while valid_route is False:
         valid_route = True
 
 time_start = time.time()
+
+# Check if the route is active by checking if there are no buses active
+url = urlopen('http://webservices.nextbus.com/service/publicXMLFeed?command=vehicleLocations&a=rutgers&r=' + route + '&t=0')
+active_buses = ET.parse(url)
+
+if active_buses.getroot().find('vehicle') is None:
+    print('The ' + routes[route] + ' route is currently inactive.')
+    quit()
+
 url = urlopen('http://webservices.nextbus.com/service/publicXMLFeed?a=rutgers&command=routeConfig&r=' + route)
 route_stops = ET.parse(url)
 
