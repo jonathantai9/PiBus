@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 from urllib.request import urlopen
-import time
-from pibus.geolocationhelper import distance_between
+import time, sys
+from math import radians, sin, cos, atan2, sqrt
 
 # Next Bus Public API - http://api.rutgers.edu/
 # Documentation - https://www.nextbus.com/xmlFeedDocs/NextBusXMLFeed.pdf
@@ -30,7 +30,7 @@ while valid_route is False:
     else:
         valid_route = True
 
-def getRouteData(route):
+def get_route_data(route):
     # Check if the route is active by checking if there are no buses active
     url = urlopen(base_url + 'vehicleLocations&r=' + route + '&t=0')
     active_buses = ET.parse(url)
@@ -62,8 +62,40 @@ def getRouteData(route):
 
         print(stop.get('title') + ':', ", ".join(minutes) + ' minutes')
 
+def distance_between(lat1, long1, lat2, long2):
+    lat1 = radians(lat1)
+    long1 = radians(long1)
+    lat2 = radians(lat2)
+    long2 = radians(long2)
+
+    delta_lat = lat2 - lat1
+    delta_long = long2 - long1
+
+    a = (sin(delta_lat / 2))**2 + cos(lat1) * cos(lat2) * (sin(delta_long / 2))**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    R = 6373 # radius of the Earth in km
+    distance = R * c
+    return distance
+
+def get_closest_stop(route):
+    current_lat = 40.50199
+    current_long = -74.44826
+    closest_distance = sys.maxsize
+    closest_stop = ''
+    url = urlopen(base_url + 'routeConfig&r=' + route)
+    route_stops = ET.parse(url)
+
+    # Loops through all stops in the given route and finds the closest one to the Honors College
+    for stop in route_stops.getroot().findall('./route/stop'):
+        distance = distance_between(current_lat, current_long, float(stop.get('lat')), float(stop.get('lon')))
+        if distance < closest_distance:
+            closest_distance = distance
+            closest_stop = stop.get('title')
+
+    return closest_stop
+
 time_start = time.time()
-getRouteData(route)
+get_route_data(route)
+print("The closest stop in this route is: " + get_closest_stop(route))
 time_end = time.time()
-print()
 print("Processing Time: " + str(time_end - time_start) + 's')
